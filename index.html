@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Empati Oyunu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night: #1b2430;
+    --night-deep: #131a24;
+    --ember: #e2934f;
+    --ember-soft: rgba(226,147,79,0.16);
+    --parchment: #f4ead9;
+    --parchment-dim: #cfc3ac;
+    --line: rgba(244,234,217,0.14);
+    --plum: #6b4a63;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, rgba(226,147,79,0.10), transparent 60%),
+      var(--night);
+    color:var(--parchment);
+    font-family:'Karla', sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:32px 18px 60px;
+  }
+  .app{
+    width:100%;
+    max-width:520px;
+  }
+  header{
+    text-align:center;
+    margin-bottom:30px;
+  }
+  .flame{
+    font-size:28px;
+    display:inline-block;
+    margin-bottom:6px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:2rem;
+    margin:0 0 6px;
+    letter-spacing:0.01em;
+  }
+  .subtitle{
+    color:var(--parchment-dim);
+    font-size:0.95rem;
+    margin:0;
+    line-height:1.5;
+  }
+  .stage{
+    position:relative;
+    min-height:340px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .deck-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:18px;
+    color:inherit;
+    font-family:inherit;
+  }
+  .deck-stack{
+    position:relative;
+    width:200px;
+    height:280px;
+  }
+  .deck-stack .layer{
+    position:absolute;
+    inset:0;
+    border-radius:14px;
+    border:1px solid var(--line);
+    background:linear-gradient(155deg, #232e3d, #1a2331);
+  }
+  .deck-stack .layer:nth-child(1){ transform: rotate(-6deg) translate(-6px, 2px); }
+  .deck-stack .layer:nth-child(2){ transform: rotate(4deg) translate(5px, -1px); }
+  .deck-stack .layer:nth-child(3){
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(155deg, #283344, #1c2634);
+    box-shadow: 0 18px 40px -14px rgba(0,0,0,0.6);
+  }
+  .deck-mark{
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    border:1.5px solid var(--ember);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--ember);
+    font-size:22px;
+  }
+  .deck-hint{
+    font-size:0.85rem;
+    color:var(--parchment-dim);
+    letter-spacing:0.02em;
+  }
+  .card{
+    width:100%;
+    max-width:420px;
+    background:linear-gradient(160deg, #26313f, #1c2532);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:34px 28px;
+    box-shadow: 0 22px 50px -18px rgba(0,0,0,0.55);
+    animation: rise 0.35s ease-out;
+  }
+  @keyframes rise{
+    from{ opacity:0; transform: translateY(14px) scale(0.98); }
+    to{ opacity:1; transform: translateY(0) scale(1); }
+  }
+  .card-kind{
+    font-size:0.78rem;
+    color:var(--ember);
+    margin-bottom:14px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .card-kind .dot{
+    width:6px; height:6px; border-radius:50%; background:var(--ember);
+  }
+  .card-prompt{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:1.35rem;
+    line-height:1.42;
+    color:var(--parchment);
+  }
+  .actions{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin-top:26px;
+  }
+  .btn{
+    border:none;
+    border-radius:10px;
+    padding:14px 20px;
+    font-family:'Karla', sans-serif;
+    font-size:0.95rem;
+    font-weight:700;
+    cursor:pointer;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+  }
+  .btn:active{ transform: scale(0.98); }
+  .btn-primary{
+    background:var(--ember);
+    color:#241605;
+  }
+  .btn-primary:hover{ opacity:0.92; }
+  .btn-ghost{
+    background:transparent;
+    color:var(--parchment-dim);
+    border:1px solid var(--line);
+  }
+  .btn-ghost:hover{ color:var(--parchment); border-color:var(--parchment-dim); }
+
+  .dice-zone{
+    margin-top:22px;
+    padding-top:22px;
+    border-top:1px dashed var(--line);
+  }
+  .dice-zone-label{
+    font-size:0.8rem;
+    color:var(--parchment-dim);
+    margin-bottom:12px;
+  }
+  .dice-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .die{
+    flex:0 0 auto;
+    min-width:76px;
+    height:52px;
+    padding:0 10px;
+    border-radius:12px;
+    background:var(--night-deep);
+    border:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Fraunces', serif;
+    font-size:0.95rem;
+    font-style:italic;
+    color:var(--ember);
+    cursor:pointer;
+    transition: transform 0.15s ease;
+    text-align:center;
+  }
+  .die.rolling{ animation: spin 0.5s ease; }
+  @keyframes spin{
+    0%{ transform: rotate(0deg) scale(1); }
+    50%{ transform: rotate(180deg) scale(1.08); }
+    100%{ transform: rotate(360deg) scale(1); }
+  }
+  .die-result{
+    flex:1;
+    background:var(--ember-soft);
+    border:1px solid rgba(226,147,79,0.35);
+    border-radius:10px;
+    padding:12px 14px;
+    font-size:0.92rem;
+    line-height:1.45;
+    color:var(--parchment);
+    min-height:44px;
+    display:flex;
+    align-items:center;
+  }
+  .die-result.empty{
+    color:var(--parchment-dim);
+    font-style:italic;
+  }
+
+  footer{
+    text-align:center;
+    margin-top:34px;
+    font-size:0.78rem;
+    color:var(--parchment-dim);
+    line-height:1.6;
+  }
+  footer a{ color:var(--ember); text-decoration:none; }
+
+  .counter{
+    text-align:center;
+    font-size:0.78rem;
+    color:var(--parchment-dim);
+    margin-top:16px;
+  }
+
+  @media (max-width:420px){
+    .deck-stack{ width:170px; height:240px; }
+    .card{ padding:26px 20px; }
+    .card-prompt{ font-size:1.18rem; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="flame">🕯️</div>
+    <h1>Empati Oyunu</h1>
+    <p class="subtitle">Bir kart çek, hikayeni anlat. Dinleyenler zar atsın, hikayeni birlikte derinleştirin.</p>
+  </header>
+
+  <div class="stage" id="stage">
+    <!-- JS ile dolduruluyor -->
+  </div>
+
+  <div class="counter" id="counter"></div>
+
+  <footer>
+    Bu, fiziksel Empati Oyunu'ndan ilham alan, orijinal içerikli bir dijital yoldaş uygulamasıdır — resmi kart metinlerini içermez.
+  </footer>
+</div>
+
+<script>
+const storyCards = [
+  { kind: "Imagine", text: "Eğer bir hayır kurumuna bir milyon dolar bağışlayacak olsaydın, hangisini seçerdin?" },
+  { kind: "Imagine", text: "12 saat boyunca görünmez olsaydın, ne yapardın?" },
+  { kind: "Imagine", text: "Sana büyük bir arazi verilseydi, onunla ne yapardın?" },
+  { kind: "Imagine", text: "Hangi eğlence içeriğini (film, dizi, kitap vs.) zihninden silip yeniden ilk kez deneyimlemek isterdin?" },
+  { kind: "Imagine", text: "Hangi hayali yaratığı evcil hayvan olarak isterdin?" },
+  { kind: "Imagine", text: "Orta Çağ'da yaşayan biriyle yer değiştirseydin, ne yapardın?" },
+  { kind: "Imagine", text: "Zaman yolculuğu yapabilseydin, hangi döneme giderdin?" },
+  { kind: "Imagine", text: "Herhangi bir sorunun cevabını alabilseydin, ne sorardın?" },
+  { kind: "Imagine", text: "Tarihi değiştirebilseydin, ne yapardın?" },
+  { kind: "Imagine", text: "Yaşadığın ülkeyle ilgili neyi değiştirirdin?" },
+  { kind: "Imagine", text: "Ortalama yaşam süresi 400 yıl olsaydı, bugün hayatını nasıl değiştirirdin?" },
+  { kind: "Imagine", text: "Dünyadaki her okulda okutulacak bir ders kitabı yazabilseydin, içinde ne olurdu?" },
+  { kind: "Imagine", text: "Uyuman gerekmese, boş kalan bu zamanı nasıl değerlendirirdin?" },
+  { kind: "Imagine", text: "Herhangi bir şeyi icat edebilseydin, ne olurdu?" },
+  { kind: "Imagine", text: "İstediğin bir şeyi bırakabilseydin, neyi bırakırdın?" },
+  { kind: "Imagine", text: "Hangi kurgusal yere gitmek isterdin?" },
+  { kind: "Imagine", text: "Etrafındaki insanların düşüncelerini duyabilseydin, ne yapardın?" },
+  { kind: "Imagine", text: "Bir anda süper ünlü olsaydın, ne yapardın?" },
+  { kind: "Imagine", text: "Para sorun olmasaydı, tüm gün neyle meşgul olurdun?" },
+  { kind: "Imagine", text: "Bir kitap, dizi ya da film evreninde yaşayabilseydin, hangisini seçerdin?" },
+  { kind: "Who is...", text: "Hangi tarihi kişilik sence hayalet olup insanları en iyi şekilde korkuturdu?" },
+  { kind: "Who is...", text: "Hayatta ya da ölmüş herhangi biriyle akşam yemeği yiyebilseydin, kimi seçerdin?" },
+  { kind: "Who is...", text: "Bir günlüğüne biriyle hayatını değiştirebilseydin, kimi seçerdin?" },
+  { kind: "Memory", text: "Geçmişteki herhangi bir tarihi olaya tanıklık edebilseydin, hangisini seçerdin?" },
+  { kind: "Memory", text: "Hayatının herhangi bir anındaki halini arayabilseydin, ne zaman arar ve ne söylerdin?" },
+];
+
+const diceMeanings = {
+  1: { label: "Pose", text: "Bu hikayeyle ilgili bir poz ver — bedeninle bir an, bir duyguyu canlandır." },
+  2: { label: "Taste", text: "Bu hikayeyi bir tada dönüştürsen, hangi tat olurdu? Anlat." },
+  3: { label: "Touch", text: "Bu hikayeyle ilişkilendirdiğin bir dokunuşu/tekstürü tarif et." },
+  4: { label: "Color", text: "Bu hikayeye bir renk ver ve neden o rengi seçtiğini anlat." },
+  5: { label: "Draw", text: "Hikayeden bir sahneyi elinle havada ya da kağıda hızlıca çiz." },
+  6: { label: "Smell", text: "Bu hikayeyle ilişkilendirdiğin bir kokuyu tarif et." },
+};
+
+let deck = [];
+let currentCard = null;
+let drawnCount = 0;
+
+function shuffle(arr){
+  const a = [...arr];
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function resetDeck(){
+  deck = shuffle(storyCards);
+  drawnCount = 0;
+}
+
+function updateCounter(){
+  const el = document.getElementById('counter');
+  const total = storyCards.length;
+  el.textContent = deck.length === 0
+    ? `Deste tükendi (${total} kart) — yeniden karıştırabilirsin.`
+    : `${drawnCount} / ${total} kart çekildi`;
+}
+
+function renderDeckView(){
+  const stage = document.getElementById('stage');
+  stage.innerHTML = `
+    <button class="deck-btn" id="drawBtn">
+      <div class="deck-stack">
+        <div class="layer"></div>
+        <div class="layer"></div>
+        <div class="layer">
+          <div class="deck-mark">✦</div>
+        </div>
+      </div>
+      <span class="deck-hint">${deck.length === 0 ? 'Desteyi karıştır' : 'Bir kart çekmek için dokun'}</span>
+    </button>
+  `;
+  const btn = document.getElementById('drawBtn');
+  btn.addEventListener('click', () => {
+    if(deck.length === 0){ resetDeck(); }
+    drawCard();
+  });
+  updateCounter();
+}
+
+function drawCard(){
+  currentCard = deck.pop();
+  drawnCount++;
+  renderCardView();
+  updateCounter();
+}
+
+function renderCardView(){
+  const stage = document.getElementById('stage');
+  stage.innerHTML = `
+    <div class="card">
+      <div class="card-kind"><span class="dot"></span>${currentCard.kind}</div>
+      <div class="card-prompt">"${currentCard.text}"</div>
+
+      <div class="dice-zone">
+        <div class="dice-zone-label">Dinleyenler için: zar at, hikayeyi keşfet</div>
+        <div class="dice-row">
+          <div class="die" id="dieBtn">?</div>
+          <div class="die-result empty" id="dieResult">Zara dokun</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="nextBtn">Sıradaki hikaye →</button>
+        <button class="btn btn-ghost" id="backBtn">Desteye dön</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('dieBtn').addEventListener('click', rollDie);
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    if(deck.length === 0){ resetDeck(); }
+    drawCard();
+  });
+  document.getElementById('backBtn').addEventListener('click', renderDeckView);
+}
+
+function rollDie(){
+  const die = document.getElementById('dieBtn');
+  const resultBox = document.getElementById('dieResult');
+  die.classList.add('rolling');
+  resultBox.classList.add('empty');
+  resultBox.textContent = '...';
+
+  let ticks = 0;
+  const interval = setInterval(() => {
+    const tempRoll = 1 + Math.floor(Math.random() * 6);
+    die.textContent = diceMeanings[tempRoll].label;
+    ticks++;
+    if(ticks > 8){
+      clearInterval(interval);
+      die.classList.remove('rolling');
+      const finalRoll = 1 + Math.floor(Math.random() * 6);
+      const outcome = diceMeanings[finalRoll];
+      die.textContent = outcome.label;
+      resultBox.classList.remove('empty');
+      resultBox.textContent = `${outcome.label}: ${outcome.text}`;
+    }
+  }, 60);
+}
+
+resetDeck();
+renderDeckView();
+</script>
+</body>
+</html>
